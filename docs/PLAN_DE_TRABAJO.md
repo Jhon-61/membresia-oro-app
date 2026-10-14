@@ -1,78 +1,57 @@
-# Plan de trabajo · 6 semanas
+# Plan de trabajo
 
-> ⚠️ **Desactualizado (14 oct 2026):** este plan es de la arquitectura con Firebase. Con Odoo como backend
-> (D-13), las tareas de Functions, Firestore y panel admin se reemplazan por módulos de Odoo. Pendiente
-> de rehacer. Avance real: formulario de afiliación en la app + módulos `membresia_oro` y
-> `membresia_oro_documentos` funcionando en Odoo.sh (rama `prueba`).
+Actualizado el 14 oct 2026. Arquitectura: **app Flutter (cliente) + Odoo 19 en Odoo.sh (todo el
+negocio)** — ver `DECISIONES.md` D-13. Repositorios: app `Jhon-61/membresia-oro-app`; módulos
+`Jhon-61/pruebas` (rama `prueba`, staging en Odoo.sh).
 
-Fechas tentativas: no hay anticipo ni fecha firmada (ver `DECISIONES.md` D-01).
-Supone inicio de Sprint 1 el lunes 19 oct 2026. Cada sprint termina con una **demo al cliente**.
+## ✅ Hecho
 
-## Semana 0 · Arranque (13–16 oct)
+- App: afiliación en 4 pasos (titular, fotos del DPI, beneficiarios, mascota, términos y firma),
+  validaciones (DPI, teléfono, NIT con dígito verificador), icono con el logo, compilación en Codemagic.
+- Odoo `membresia_oro`: miembros sobre Contactos, beneficiarios, mascotas, cliente existente →
+  "Por revisar", API de afiliación, factura de la primera cuota, miembro **activo al pagar**,
+  botón "Crear factura de la cuota" (con periodo AAAA-MM, sin cuotas duplicadas).
+- Odoo `membresia_oro_documentos`: fotos del DPI, firma y mascota protegidas.
+- Odoo `payment_cybersource`: proveedor de pago completo (pendiente de que el sandbox de
+  Cybersource deje de responder 502). **Mientras tanto se usa el proveedor Demo de Odoo.**
 
-### Trámites externos (iniciar ya, tardan semanas)
-- [ ] D-U-N-S de Las Golondrinas (cliente)
-- [ ] Meta Business: verificación del negocio + número dedicado de WhatsApp
-- [ ] Crear cuenta de **sandbox de Cybersource** y generar llaves de API (D-10)
-- [ ] Preguntar al banco / Cybersource: C-01 a C-06
-- [ ] Preguntar sobre Odoo: O-01 a O-09 (y conseguir base de datos de prueba)
-- [ ] Enviar al cliente las preguntas P-01 a P-13
-- [ ] Cuenta de Google Play de organización (USD 25), cuando haya D-U-N-S
+## Fase B · Seguridad, inicio de sesión y "Mi membresía"
 
-### Técnico
-- [x] Estructura del repositorio, `CLAUDE.md`, documentos
-- [ ] Repositorio privado en GitHub + primer commit
-- [ ] Instalar Firebase CLI (`npm install -g firebase-tools`) y `firebase login`
-- [ ] Crear `membresia-oro-dev` en tu cuenta de Firebase (plan Blaze, alerta de presupuesto) (D-11)
-- [ ] `membresia-oro-prod` en la cuenta del cliente (puede esperar hasta Sprint 4)
-- [ ] `flutterfire configure` para ambos ambientes
-- [ ] Probar emuladores locales (`firebase emulators:start`)
-- [ ] Bocetos de pantallas principales (azul `#0A1931`, dorado `#D4AF37`)
-- [ ] Aprendizaje: TypeScript básico, Firestore, Security Rules
+- [ ] Odoo: cuenta de portal por miembro (correo + contraseña), sesiones con token, "olvidé mi
+      contraseña", límite de intentos por IP, sin CORS, tamaño máximo de las peticiones.
+- [ ] App: contraseña en la afiliación, pantalla de inicio de sesión, sesión guardada de forma segura,
+      cerrar sesión.
+- [ ] App: pantalla **Mi membresía** (estado, carencias, cuotas y pago de pendientes, beneficiarios,
+      mascota).
+- [ ] App: al volver del pago, la app se actualiza sola y avisa si quedó aprobado.
 
-## Sprint 1 · Base + afiliación (semanas 1–2: 19–30 oct)
-- [ ] Login (teléfono SMS o correo) y custom claim `admin`
-- [ ] Modelos Dart + enums; colecciones y Security Rules con pruebas en emulador
-- [ ] Formulario de afiliación: titular (+ NIT o CF, según P-12), 4 beneficiarios, mascota (alerta > 25 kg sin bloquear)
-- [ ] Términos + firma con el dedo; fotos a Storage
-- [ ] Callable `iniciarAfiliacion` (valida y crea miembro en `pendiente`)
-- [ ] Contrato PDF en Functions con plantilla temporal
-- [ ] Landing HTML
-- [ ] **Demo:** afiliarse de punta a punta con pago simulado
+## Fase C · Cobranza mensual y candados
 
-## Sprint 2 · Cobranza (semanas 3–4: 2–13 nov)
-- [ ] `PaymentProvider` + implementación Cybersource (sandbox)
-- [ ] Página de pago propia `/pagar/{cobroId}` con Unified Checkout (D-10)
-- [ ] Guardar tarjeta con TMS y cobro mensual con token
-- [ ] Webhook HTTPS idempotente (`webhookEventos`) con validación de firma
-- [ ] Primer cobro al afiliarse → `activo`, contrato por WhatsApp
-- [ ] Tarea diaria (Cloud Scheduler, hora de Guatemala): cobro día 1, reintentos 3/7/15, mora 30, cancelado 60
-- [ ] `pagos` con `cobroId` = `{miembroId}_{AAAA-MM}`
-- [ ] WhatsApp automático con plantillas
-- [ ] Cliente de Odoo en Functions + sincronización asíncrona: contacto, factura y pago por cada cobro (D-12)
-- [ ] FEL: desde Odoo si ya lo emite (O-04); si no, integración aparte (+1 semana)
-- [ ] Pruebas unitarias de la máquina de estados con fechas simuladas
-- [ ] **Demo:** simular un mes completo de cobranza
+- [ ] Acción programada diaria: cuota del mes el día de cobro, cobro automático con la tarjeta
+      guardada, reintentos los días 3, 7 y 15, mora al día 30, cancelación al día 60.
+- [ ] Reactivar membresía (reinicia la carencia).
+- [ ] Candados: carencia humano 90 días / mascota 30 días (y por beneficiario agregado después),
+      1 servicio cada 365 días, bloqueo en mora o cancelado.
 
-## Sprint 3 · Candados, Servicio Oro y panel admin (semana 5: 16–20 nov)
-- [ ] Callable `puedeUsarBeneficio` (carencias 90/30 días, 365 días, mora/cancelado) + pruebas
-- [ ] Botón "Solicitar Servicio Oro" + formulario + ticket + WhatsApp admin + correo funeraria + push
-- [ ] Flujo admin: aprobar / rechazar con motivo / en proceso / finalizar; link de Q3,480 para 2º servicio
-- [ ] Panel: semáforo, tabla con filtros, botones de cobro/efectivo/reactivar, KPIs desde `stats`, CSV
-- [ ] Colección `auditoria`
-- [ ] Panel: pagos con error de sincronización a Odoo + botón "reintentar"; reporte de conciliación mensual
-- [ ] **Demo:** el admin maneja un caso completo
+## Fase D · Servicio Oro
 
-## Sprint 4 · Calidad y lanzamiento (semana 6: 23–27 nov)
-- [ ] Revisión de seguridad (rules, App Check, secretos)
-- [ ] Eliminar cuenta, política de privacidad, formulario de datos de las tiendas
-- [ ] Pruebas completas en sandbox + dispositivos Android reales
-- [ ] Piloto con 10–20 miembros reales
-- [ ] Publicar web en el dominio del cliente + Android (`.aab`) en Play Store
-- [ ] Manual de 2 páginas
+- [ ] Odoo: solicitudes de servicio con flujo del administrador (aprobar, rechazar con motivo, en
+      proceso, finalizar con fecha y costo) y factura de Q3,480 por el 2.º servicio.
+- [ ] App: botón "Solicitar Servicio Oro", formulario e historial.
 
-## Después del lanzamiento
-- [ ] iOS: Codemagic o Mac, TestFlight y revisión de Apple
-- [ ] Cobro automático (QPayBilling o QPayToken) detrás de `PaymentProvider`
-- [ ] 30 días de soporte de errores
-- [ ] Fase 2: proyección de utilidad 12 meses, gráfica ingreso vs. siniestralidad
+## Fase E · Contrato, datos, cuenta, tablero y FEL
+
+- [ ] Contrato en PDF con la firma, descargable desde la app.
+- [ ] App: editar teléfono, dirección, NIT y beneficiarios.
+- [ ] App: eliminar cuenta (requisito de las tiendas).
+- [ ] App: pantalla de carga con el logo.
+- [ ] Odoo: tablero (activos, ingreso del mes, % mora, servicios, utilidad estimada).
+- [ ] Odoo: diario configurable para las cuotas (el que emite FEL en la empresa).
+
+## Pendiente (fuera de estas fases)
+
+- Cambiar Demo por Cybersource cuando su sandbox funcione; generar llaves nuevas.
+- WhatsApp (plantillas de Meta).
+- iPhone con Codemagic (cuenta de Apple Developer, requiere D-U-N-S).
+- Texto legal definitivo y política de privacidad (cliente).
+- Respuestas del cliente en `PREGUNTAS_ABIERTAS.md` (mientras tanto se usan los supuestos de D-17).

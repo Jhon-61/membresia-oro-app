@@ -106,6 +106,18 @@ configuración del proveedor en Odoo (administradores), nunca en Git ni en el ch
 **Por qué:** los pagos quedan registrados y conciliados contra la factura automáticamente (contabilidad
 y FEL en Odoo); se reutilizan tokens y enlaces de pago nativos. Se prueba primero sin la app.
 
+### D-16 · Inicio de sesión con correo y contraseña (14 oct 2026)
+**Decisión:** cada miembro tiene una cuenta de **portal de Odoo** (correo + contraseña, creada al
+afiliarse). La app inicia sesión contra la API de Odoo y recibe un **token de sesión** que guarda de
+forma segura; las demás llamadas lo envían como `Authorization: Bearer`. Sin Firebase ni costos por SMS.
+
+### D-17 · Supuestos de negocio mientras el cliente responde (14 oct 2026)
+Configurables en Odoo; se cambian cuando lleguen las respuestas de `PREGUNTAS_ABIERTAS.md`:
+cobro el **día 1** sin prorrateo; reintentos los días **3, 7 y 15**; **mora** al día 30 y **cancelación**
+al día 60; carencia **desde la afiliación** (90 días humano, 30 mascota) y **por beneficiario** agregado
+después; **un servicio cada 365 días compartido**; 2.º servicio humano antes de 365 días = **Q3,480**;
+2.º servicio de mascota no cubierto; cargo de **Q500** por mascota de más de 25 kg al pedir el servicio.
+
 ### D-09 · Montos en centavos y fechas en hora de Guatemala (13 oct 2026)
 **Decisión:** montos como enteros en centavos; cálculos de fechas en `America/Guatemala`.
 **Por qué:** los `double` generan errores de redondeo con dinero; en UTC el "día 1" empezaría el día 30
