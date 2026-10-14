@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/config.dart';
+import '../../core/dependencias.dart';
 import '../../services/afiliacion_service.dart';
 import 'formulario_afiliacion.dart';
 import 'pantalla_afiliacion_exitosa.dart';
@@ -9,11 +10,11 @@ import 'pasos/paso_firma.dart';
 import 'pasos/paso_mascota.dart';
 import 'pasos/paso_titular.dart';
 
-/// Flujo de afiliación en 4 pasos. El pago se agrega después (Sprint 2).
+/// Flujo de afiliación en 4 pasos. Al terminar, el miembro queda con la sesión iniciada.
 class PantallaAfiliacion extends StatefulWidget {
   const PantallaAfiliacion({super.key, this.servicio});
 
-  /// Se puede inyectar un servicio para las pruebas; si no, se elige según la configuración.
+  /// Se puede inyectar un servicio para las pruebas; si no, se usa el de [Dependencias].
   final AfiliacionService? servicio;
 
   @override
@@ -25,7 +26,8 @@ class _PantallaAfiliacionState extends State<PantallaAfiliacion> {
 
   final _formulario = FormularioAfiliacion();
   final _formKeys = List.generate(_titulos.length, (_) => GlobalKey<FormState>());
-  late final AfiliacionService _servicio = widget.servicio ?? AfiliacionService.desdeConfig();
+  late final AfiliacionService _servicio =
+      widget.servicio ?? Dependencias.de(context).afiliacion;
 
   int _paso = 0;
   bool _enviando = false;
@@ -59,6 +61,9 @@ class _PantallaAfiliacionState extends State<PantallaAfiliacion> {
     setState(() => _enviando = true);
     final solicitud = await _formulario.aSolicitud();
     final resultado = await _servicio.enviar(solicitud);
+    if (resultado case AfiliacionExitosa(:final token?) when mounted) {
+      await Dependencias.de(context).cuenta.guardarSesion(token);
+    }
     if (!mounted) return;
     setState(() => _enviando = false);
 

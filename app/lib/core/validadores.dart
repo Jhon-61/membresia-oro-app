@@ -59,6 +59,19 @@ abstract final class Validadores {
     return null;
   }
 
+  /// Mismas reglas que Odoo (membresia_oro/validaciones.py: error_password).
+  static String? password(String? valor) {
+    final texto = valor ?? '';
+    if (texto.isEmpty) return 'Escribe una contraseña';
+    if (texto.length < 8 || texto.length > 128) {
+      return 'Debe tener entre 8 y 128 caracteres';
+    }
+    if (!RegExp(r'[A-Za-z]').hasMatch(texto) || !RegExp(r'\d').hasMatch(texto)) {
+      return 'Debe tener al menos una letra y un número';
+    }
+    return null;
+  }
+
   static String? pesoKg(String? valor) {
     final peso = convertirPeso(valor ?? '');
     if ((valor ?? '').trim().isEmpty) return 'Ingresa el peso aproximado';

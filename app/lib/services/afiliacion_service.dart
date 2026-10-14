@@ -28,6 +28,7 @@ class AfiliacionExitosa extends ResultadoAfiliacion {
     this.clienteExistente = false,
     this.aviso,
     this.urlPago,
+    this.token,
   });
 
   /// Número de afiliación para mostrar al cliente (p. ej. "MO-000123").
@@ -43,6 +44,9 @@ class AfiliacionExitosa extends ResultadoAfiliacion {
   /// Enlace para pagar la primera cuota (página de la factura en Odoo). null si Odoo no pudo
   /// crear la factura.
   final String? urlPago;
+
+  /// Token de sesión: el miembro queda con la sesión iniciada al afiliarse.
+  final String? token;
 }
 
 class AfiliacionFallida extends ResultadoAfiliacion {

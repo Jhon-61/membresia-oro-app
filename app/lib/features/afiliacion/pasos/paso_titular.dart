@@ -65,6 +65,20 @@ class PasoTitular extends StatelessWidget {
             validator: Validadores.email,
           ),
           espacio,
+          _CampoPassword(
+            controller: formulario.password,
+            etiqueta: 'Crea una contraseña',
+            ayuda: 'Con ella entrarás a la app. Mínimo 8 caracteres, con letras y números.',
+            validator: Validadores.password,
+          ),
+          espacio,
+          _CampoPassword(
+            controller: formulario.confirmarPassword,
+            etiqueta: 'Repite la contraseña',
+            validator: (valor) =>
+                valor != formulario.password.text ? 'Las contraseñas no coinciden' : null,
+          ),
+          espacio,
           TextFormField(
             controller: formulario.direccion,
             decoration: const InputDecoration(labelText: 'Dirección'),
@@ -99,6 +113,49 @@ class PasoTitular extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Campo de contraseña con botón para mostrarla u ocultarla.
+class _CampoPassword extends StatefulWidget {
+  const _CampoPassword({
+    required this.controller,
+    required this.etiqueta,
+    required this.validator,
+    this.ayuda,
+  });
+
+  final TextEditingController controller;
+  final String etiqueta;
+  final String? ayuda;
+  final FormFieldValidator<String> validator;
+
+  @override
+  State<_CampoPassword> createState() => _CampoPasswordState();
+}
+
+class _CampoPasswordState extends State<_CampoPassword> {
+  bool _oculta = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: widget.controller,
+      obscureText: _oculta,
+      autocorrect: false,
+      enableSuggestions: false,
+      decoration: InputDecoration(
+        labelText: widget.etiqueta,
+        helperText: widget.ayuda,
+        helperMaxLines: 2,
+        suffixIcon: IconButton(
+          tooltip: _oculta ? 'Mostrar contraseña' : 'Ocultar contraseña',
+          icon: Icon(_oculta ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+          onPressed: () => setState(() => _oculta = !_oculta),
+        ),
+      ),
+      validator: widget.validator,
     );
   }
 }

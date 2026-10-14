@@ -27,7 +27,8 @@ Accept: application/json
     "telefono": "55551234",
     "email": "ana@correo.com",
     "direccion": "Zona 1, Guatemala",
-    "nit": "CF"
+    "nit": "CF",
+    "password": "Prueba2026"
   },
   "dpi_frente":  { "nombre_archivo": "frente.jpg",  "mime": "image/jpeg", "base64": "..." },
   "dpi_reverso": { "nombre_archivo": "reverso.jpg", "mime": "image/jpeg", "base64": "..." },
@@ -60,6 +61,7 @@ Accept: application/json
 | `titular.telefono` | texto | 8 dígitos sin `+502` |
 | `titular.email` | texto | Correo válido, en minúsculas |
 | `titular.direccion` | texto | Obligatorio |
+| `titular.password` | texto | Contraseña de la cuenta de la app: 8–128 caracteres, con letras y números. Se crea un usuario de portal con login = correo. Si el correo ya tiene cuenta → `422` en `titular.email` |
 | `titular.nit` | texto | `"CF"` o NIT sin guiones (puede terminar en `K`), con **dígito verificador válido** (mismo algoritmo que `base_vat` de Odoo). Se guarda en el campo estándar `vat`; con CF queda vacío |
 | `dpi_frente`, `dpi_reverso` | archivo | Obligatorios. JPEG/PNG, máx. 5 MB cada uno (la app los comprime a ~200 KB) |
 | `beneficiarios` | lista | De 0 a 4 elementos |
@@ -82,7 +84,8 @@ Se puede asignar directo a un `fields.Image` / `fields.Binary` de Odoo.
 ```json
 {
   "ok": true, "miembro_id": 123, "referencia": "MO-000123", "cliente_existente": false,
-  "url_pago": "https://<odoo>/my/invoices/45?access_token=..."
+  "url_pago": "https://<odoo>/my/invoices/45?access_token=...",
+  "token": "<token de sesión>"
 }
 ```
 `url_pago`: página de la factura de la primera cuota en el portal de Odoo, donde se paga en línea
@@ -135,14 +138,46 @@ todo lo de la tabla, más: tamaño y tipo real de las imágenes, DPI duplicado y
 
 ---
 
-## Seguridad: pendiente antes de producción
+## Sesión y "Mi membresía"
 
-En la fase de pruebas el endpoint es público (`auth="public"`) para poder probar rápido en la rama de
-desarrollo de Odoo.sh. **Antes de producción**:
+Las rutas protegidas reciben `Authorization: Bearer <token>`. El token lo devuelven la afiliación y
+el inicio de sesión; Odoo solo guarda su huella (SHA-256) y vence a los 90 días.
 
-1. **Autenticación**: la app enviará `Authorization: Bearer <token de Firebase>` (login por SMS) y Odoo
-   verificará el token antes de crear nada.
-2. **Límite de peticiones** por IP/teléfono, para evitar que llenen la base con solicitudes falsas.
-3. **CORS** solo si se usa la versión web de Flutter: permitir únicamente el dominio de la app.
-   (Las apps de Android/iOS no necesitan CORS.)
-4. Las fotos de DPI solo visibles para el grupo de administradores.
+| Ruta | Método | Auth | Qué hace |
+|---|---|---|---|
+| `/api/membresia/v1/sesion` | POST `{email, password}` | — | `200 {ok, token, membresia}` · `401` credenciales incorrectas · `429` demasiados intentos |
+| `/api/membresia/v1/sesion` | DELETE | Bearer | Cierra la sesión (invalida el token) |
+| `/api/membresia/v1/sesion/recuperar` | POST `{email}` | — | Envía el correo de Odoo para crear contraseña nueva. Siempre `200` con el mismo mensaje |
+| `/api/membresia/v1/membresia` | GET | Bearer | `200 {ok, membresia}` · `401` sesión vencida |
+
+`membresia`:
+```json
+{
+  "referencia": "MO-000007", "nombre": "Ana López", "email": "ana@correo.com",
+  "telefono": "+502 55551234", "direccion": "Zona 1", "nit": "CF",
+  "estado": "pendiente|activo|mora|suspendido|cancelado", "estado_texto": "Pendiente de pago",
+  "fecha_alta": "2026-10-14",
+  "carencia": {
+    "humano":  { "fecha": "2027-01-12", "dias_restantes": 90 },
+    "mascota": { "fecha": "2026-11-13", "dias_restantes": 30 }
+  },
+  "beneficiarios": [{ "id": 1, "nombre": "...", "dpi": "...", "parentesco": "hijo",
+                      "fecha_nacimiento": "2010-05-03",
+                      "carencia": { "fecha": "...", "dias_restantes": 90 } }],
+  "mascotas": [{ "id": 1, "nombre": "...", "especie": "perro", "raza": "...", "peso_kg": 28.5,
+                 "cargo_extra": true }],
+  "cuotas": [{ "id": 3, "numero": "INV/2026/00003", "periodo": "2026-10", "fecha": "2026-10-14",
+               "monto": 69.99, "pendiente": 69.99, "moneda": "GTQ", "pagada": false,
+               "url_pago": "https://.../my/invoices/3?access_token=..." }],
+  "deuda": { "cuotas": 1, "monto": 69.99 }
+}
+```
+La carencia de cada beneficiario cuenta desde que se agregó (supuesto D-17).
+
+## Seguridad
+
+- Límite por IP: 10 afiliaciones por hora, 20 inicios de sesión cada 15 minutos, 5 recuperaciones
+  por hora (`429`). Odoo además bloquea por IP tras varios intentos fallidos de contraseña.
+- Sin CORS: la API la usa solo la app móvil.
+- Afiliación: máximo 20 MB por petición.
+- Las fotos de DPI solo las ve el grupo de documentos sensibles en Odoo.

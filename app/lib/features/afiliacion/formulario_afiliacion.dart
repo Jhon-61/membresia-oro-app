@@ -39,6 +39,8 @@ class FormularioAfiliacion {
   final email = TextEditingController();
   final direccion = TextEditingController();
   final nit = TextEditingController();
+  final password = TextEditingController();
+  final confirmarPassword = TextEditingController();
   ArchivoAdjunto? dpiFrente;
   ArchivoAdjunto? dpiReverso;
 
@@ -78,6 +80,7 @@ class FormularioAfiliacion {
         email: email.text.trim().toLowerCase(),
         direccion: direccion.text.trim(),
         nit: Validadores.normalizarNit(nit.text),
+        password: password.text,
       ),
       dpiFrente: dpiFrente!,
       dpiReverso: dpiReverso!,
@@ -108,7 +111,7 @@ class FormularioAfiliacion {
 
   void dispose() {
     for (final controlador in [
-      nombre, dpi, telefono, email, direccion, nit, //
+      nombre, dpi, telefono, email, direccion, nit, password, confirmarPassword, //
       mascotaNombre, mascotaRaza, mascotaPeso,
     ]) {
       controlador.dispose();

@@ -19,6 +19,7 @@ SolicitudAfiliacion _solicitud({Mascota? mascota}) => SolicitudAfiliacion(
         email: 'ana@correo.com',
         direccion: 'Zona 1, Guatemala',
         nit: 'CF',
+        password: 'Prueba2026',
       ),
       dpiFrente: _imagen('frente.jpg'),
       dpiReverso: _imagen('reverso.jpg'),

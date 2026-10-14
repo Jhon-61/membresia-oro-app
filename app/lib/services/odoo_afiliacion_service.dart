@@ -66,6 +66,9 @@ class OdooAfiliacionService implements AfiliacionService {
         clienteExistente: json['cliente_existente'] == true,
         aviso: json['aviso']?.toString(),
         urlPago: _urlSegura(json['url_pago']),
+        token: json['token'] is String && (json['token'] as String).isNotEmpty
+            ? json['token'] as String
+            : null,
       );
     }
 

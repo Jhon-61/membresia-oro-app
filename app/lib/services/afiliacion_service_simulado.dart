@@ -28,6 +28,6 @@ class AfiliacionServiceSimulado implements AfiliacionService {
     debugPrint('Imágenes: $kbTotales KB en total');
 
     final referencia = 'SIM-${DateTime.now().millisecondsSinceEpoch % 1000000}';
-    return AfiliacionExitosa(referencia: referencia);
+    return AfiliacionExitosa(referencia: referencia, token: 'simulado');
   }
 }

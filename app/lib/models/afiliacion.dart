@@ -60,6 +60,7 @@ class Titular {
     required this.email,
     required this.direccion,
     required this.nit,
+    required this.password,
   });
 
   final String nombre;
@@ -71,6 +72,9 @@ class Titular {
   /// "CF" si es consumidor final.
   final String nit;
 
+  /// Contraseña de la cuenta de la app. Solo viaja a Odoo (por HTTPS) al afiliarse.
+  final String password;
+
   Map<String, dynamic> toJson() => {
         'nombre': nombre,
         'dpi': dpi,
@@ -78,6 +82,7 @@ class Titular {
         'email': email,
         'direccion': direccion,
         'nit': nit,
+        'password': password,
       };
 }
 
