@@ -8,6 +8,7 @@ import 'package:membresia_oro/models/membresia.dart';
 import 'package:membresia_oro/services/afiliacion_service_simulado.dart';
 import 'package:membresia_oro/services/api_odoo.dart';
 import 'package:membresia_oro/services/cuenta_service.dart';
+import 'package:membresia_oro/services/servicio_service.dart';
 import 'package:membresia_oro/services/sesion_store.dart';
 
 /// La app con servicios simulados (sin red). Con [token], arranca con la sesión iniciada.
@@ -17,6 +18,7 @@ Future<Widget> appDePrueba({String? token, CuentaService? cuenta}) async {
   return Dependencias(
     afiliacion: AfiliacionServiceSimulado(demora: Duration.zero),
     cuenta: cuenta ?? CuentaServiceSimulado(store),
+    servicios: ServicioServiceSimulado(),
     child: const MembresiaOroApp(),
   );
 }
@@ -47,6 +49,17 @@ void main() {
     expect(find.text('Mi membresía'), findsOneWidget);
     expect(find.text('N.º MO-000000'), findsOneWidget);
     expect(find.text('Pendiente de pago'), findsOneWidget);
+  });
+
+  testWidgets('El botón rojo abre el formulario de Servicio Oro', (tester) async {
+    await tester.pumpWidget(await appDePrueba(token: 'simulado'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Solicitar Servicio Oro'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('¿Para quién es el servicio?'), findsOneWidget);
+    expect(find.text('Lugar del fallecimiento'), findsOneWidget);
   });
 
   testWidgets('Iniciar sesión con contraseña incorrecta muestra el error', (tester) async {

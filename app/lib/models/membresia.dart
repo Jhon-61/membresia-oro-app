@@ -122,6 +122,49 @@ String? _urlSegura(Object? valor) {
   return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty ? uri.toString() : null;
 }
 
+class ServicioInfo {
+  const ServicioInfo({
+    required this.id,
+    required this.numero,
+    required this.tipoTexto,
+    required this.persona,
+    required this.estado,
+    required this.estadoTexto,
+    required this.fechaSolicitud,
+    required this.motivoRechazo,
+    required this.cargo,
+    required this.urlPago,
+  });
+
+  factory ServicioInfo.desdeJson(Map<String, dynamic> json) => ServicioInfo(
+        id: json['id'] as int,
+        numero: '${json['numero'] ?? ''}',
+        tipoTexto: '${json['tipo_texto'] ?? json['tipo'] ?? ''}',
+        persona: '${json['persona'] ?? ''}',
+        estado: '${json['estado'] ?? ''}',
+        estadoTexto: '${json['estado_texto'] ?? json['estado'] ?? ''}',
+        fechaSolicitud: _fecha('${json['fecha_solicitud'] ?? ''}'.split(' ').first),
+        motivoRechazo: json['motivo_rechazo']?.toString(),
+        cargo: _numero(json['cargo']),
+        urlPago: _urlSegura(json['url_pago']),
+      );
+
+  final int id;
+  final String numero;
+  final String tipoTexto;
+  final String persona;
+
+  /// pendiente, aprobado, en_proceso, rechazado, finalizado
+  final String estado;
+  final String estadoTexto;
+  final DateTime? fechaSolicitud;
+  final String? motivoRechazo;
+  final double cargo;
+
+  /// Enlace para pagar el cargo (2.º servicio, mascota pesada), si está pendiente.
+  final String? urlPago;
+}
+
 class Membresia {
   const Membresia({
     required this.referencia,
@@ -138,6 +181,8 @@ class Membresia {
     required this.beneficiarios,
     required this.mascotas,
     required this.cuotas,
+    required this.servicios,
+    required this.diasAtraso,
     required this.cuotasPendientes,
     required this.montoPendiente,
   });
@@ -162,6 +207,8 @@ class Membresia {
       beneficiarios: lista('beneficiarios').map(BeneficiarioInfo.desdeJson).toList(),
       mascotas: lista('mascotas').map(MascotaInfo.desdeJson).toList(),
       cuotas: lista('cuotas').map(Cuota.desdeJson).toList(),
+      servicios: lista('servicios').map(ServicioInfo.desdeJson).toList(),
+      diasAtraso: json['dias_atraso'] is int ? json['dias_atraso'] as int : 0,
       cuotasPendientes: deuda['cuotas'] is int ? deuda['cuotas'] as int : 0,
       montoPendiente: _numero(deuda['monto']),
     );
@@ -183,6 +230,8 @@ class Membresia {
   final List<BeneficiarioInfo> beneficiarios;
   final List<MascotaInfo> mascotas;
   final List<Cuota> cuotas;
+  final List<ServicioInfo> servicios;
+  final int diasAtraso;
   final int cuotasPendientes;
   final double montoPendiente;
 

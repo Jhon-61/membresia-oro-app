@@ -156,7 +156,7 @@ el inicio de sesión; Odoo solo guarda su huella (SHA-256) y vence a los 90 día
   "referencia": "MO-000007", "nombre": "Ana López", "email": "ana@correo.com",
   "telefono": "+502 55551234", "direccion": "Zona 1", "nit": "CF",
   "estado": "pendiente|activo|mora|suspendido|cancelado", "estado_texto": "Pendiente de pago",
-  "fecha_alta": "2026-10-14",
+  "fecha_alta": "2026-10-14", "dias_atraso": 0,
   "carencia": {
     "humano":  { "fecha": "2027-01-12", "dias_restantes": 90 },
     "mascota": { "fecha": "2026-11-13", "dias_restantes": 30 }
@@ -173,6 +173,33 @@ el inicio de sesión; Odoo solo guarda su huella (SHA-256) y vence a los 90 día
 }
 ```
 La carencia de cada beneficiario cuenta desde que se agregó (supuesto D-17).
+
+## Servicio Oro
+
+| Ruta | Método | Auth | Qué hace |
+|---|---|---|---|
+| `/api/membresia/v1/servicios/evaluar?tipo=humano&beneficiario_id=5` | GET | Bearer | Candado para esa persona (sin crear nada): `{ok, permitido, mensaje, cargo, dias_restantes}` |
+| `/api/membresia/v1/servicios` | POST | Bearer | Crea la solicitud si el candado lo permite: `201 {ok, servicio, mensaje}`; si no, `422 {ok: false, mensaje, candado}` |
+
+Cuerpo de la solicitud:
+```json
+{
+  "tipo": "humano",
+  "beneficiario_id": 5,
+  "mascota_id": null,
+  "lugar": "Hospital General",
+  "contacto_nombre": "Luis López",
+  "contacto_telefono": "55554444",
+  "notas": "",
+  "dpi_foto": { "nombre_archivo": "dpi.jpg", "mime": "image/jpeg", "base64": "..." }
+}
+```
+- `tipo`: `humano` (titular si no hay `beneficiario_id`) o `mascota` (con `mascota_id`).
+- `dpi_foto` obligatoria para `humano`.
+- `servicio`: `{id, numero, tipo, tipo_texto, persona, estado, estado_texto, fecha_solicitud,
+  motivo_rechazo, cargo, url_pago}`. `url_pago` existe si hay un cargo pendiente (2.º servicio
+  Q3,480 o mascota de más de 25 kg Q500).
+- Los servicios del miembro también vienen en `membresia.servicios`.
 
 ## Seguridad
 

@@ -8,6 +8,7 @@ import '../../models/membresia.dart';
 import '../../services/api_odoo.dart';
 import '../inicio/pantalla_inicio.dart';
 import '../pagos/abrir_pago.dart';
+import '../servicio/pantalla_solicitar_servicio.dart';
 
 /// Pantalla principal del miembro con sesión iniciada.
 class PantallaMiMembresia extends StatefulWidget {
@@ -92,6 +93,18 @@ class _PantallaMiMembresiaState extends State<PantallaMiMembresia> with WidgetsB
     }
   }
 
+  Future<void> _solicitarServicio(Membresia membresia) async {
+    final enviado = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => PantallaSolicitarServicio(membresia: membresia)),
+    );
+    if (enviado == true) _cargar();
+  }
+
+  Future<void> _pagarServicio(ServicioInfo servicio) async {
+    _esperandoPago = true;
+    await abrirPaginaDePago(servicio.urlPago!);
+  }
+
   Future<void> _cerrarSesion() async {
     final confirmar = await showDialog<bool>(
       context: context,
@@ -144,10 +157,40 @@ class _PantallaMiMembresiaState extends State<PantallaMiMembresia> with WidgetsB
                 children: [
                   if (_error != null) _AvisoError(mensaje: _error!),
                   _TarjetaEstado(membresia: membresia),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(56),
+                      textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                    ),
+                    onPressed: () => _solicitarServicio(membresia),
+                    icon: const Icon(Icons.support_agent),
+                    label: const Text('Solicitar Servicio Oro'),
+                  ),
                   if (membresia.cuotaPorPagar != null) ...[
                     const SizedBox(height: 12),
                     _TarjetaPago(membresia: membresia, alPagar: _pagar),
                   ],
+                  if (membresia.servicios.isNotEmpty)
+                    _Seccion(titulo: 'Mis solicitudes de servicio', children: [
+                      for (final s in membresia.servicios)
+                        ListTile(
+                          leading: const Icon(Icons.assignment_outlined),
+                          title: Text('${s.numero} · ${s.persona}'),
+                          subtitle: Text([
+                            '${s.tipoTexto} · ${s.estadoTexto}',
+                            if (s.motivoRechazo != null) 'Motivo: ${s.motivoRechazo}',
+                          ].join('\n')),
+                          trailing: s.urlPago != null
+                              ? TextButton(
+                                  onPressed: () => _pagarServicio(s),
+                                  child: Text('Pagar ${formatoMonto(s.cargo, 'GTQ')}'),
+                                )
+                              : null,
+                        ),
+                    ]),
                   _Seccion(titulo: 'Tus beneficios', children: [
                     _FilaCarencia(texto: 'Servicio funerario', carencia: membresia.carenciaHumano),
                     _FilaCarencia(texto: 'Cremación de mascota', carencia: membresia.carenciaMascota),
