@@ -1,0 +1,25 @@
+# Secretos: nunca subir al repositorio
+.env
+.env.*
+!.env.example
+*service-account*.json
+*-firebase-adminsdk-*.json
+
+# Llaves de firma de Android e iOS
+*.jks
+*.keystore
+key.properties
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+
+# Firebase (solo si se usa para notificaciones push)
+.firebase/
+firebase-debug.log*
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
