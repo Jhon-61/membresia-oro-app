@@ -1,0 +1,18 @@
+# Icono de la app. Para regenerarlo después de cambiar las imágenes de assets/marca/:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/marca/icono.png"
+
+  android: true
+  min_sdk_android: 21
+  # Icono adaptativo (Android 8+): el sistema lo recorta en círculo, gota, etc.
+  adaptive_icon_background: "#0A1931"
+  adaptive_icon_foreground: "assets/marca/icono_frente.png"
+
+  ios: true
+  remove_alpha_ios: true  # Apple rechaza iconos con transparencia
+
+  web:
+    generate: true
+    background_color: "#0A1931"
+    theme_color: "#0A1931"

@@ -44,8 +44,14 @@ class PantallaInicio extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.workspace_premium, size: 72, color: ColoresOro.dorado),
-              const SizedBox(height: 16),
+              Center(
+                child: Image.asset(
+                  'assets/marca/emblema.png',
+                  height: 160,
+                  semanticLabel: 'Emblema de Membresía Oro · Las Golondrinas',
+                ),
+              ),
+              const SizedBox(height: 24),
               const Text(
                 'MEMBRESÍA ORO',
                 textAlign: TextAlign.center,
