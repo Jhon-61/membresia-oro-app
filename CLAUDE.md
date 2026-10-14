@@ -11,7 +11,7 @@ Documentos de referencia (leer antes de cambiar reglas de negocio):
 - `docs/DECISIONES.md`: decisiones tomadas y por qué.
 - `docs/PREGUNTAS_ABIERTAS.md`: dudas pendientes. **No inventar respuestas**: si una tarea depende de una
   pregunta abierta, preguntar o dejarlo configurable.
-- `docs/PLAN_DE_TRABAJO.md`: plan original de 6 semanas (pendiente de rehacer con la arquitectura Odoo).
+- `docs/PLAN_DE_TRABAJO.md`: plan por fases (B a E hechas) y lo que queda pendiente.
 
 ## Sobre el desarrollador
 
@@ -61,7 +61,8 @@ membresia_oro/
     │   ├── core/                 Tema, constantes de pantalla, validadores, formato, config (ODOO_URL)
     │   ├── models/               Datos y JSON del contrato con Odoo (afiliacion.dart), enums de estados
     │   ├── services/             Comunicación con Odoo (interfaz + implementación real + simulada)
-    │   └── features/afiliacion/  Formulario de afiliación en 4 pasos
+    │   └── features/             Pantallas: afiliacion, cuenta (login, eliminar), inicio,
+    │                             membresia (Mi membresía, datos, beneficiarios), pagos, servicio
     └── test/                     Pruebas (validadores, JSON del contrato, servicio de Odoo, pantallas)
 ```
 
@@ -82,10 +83,11 @@ flutter analyze
 flutter test
 ```
 
-Notas de Odoo.sh: cada push a una rama de desarrollo crea una compilación nueva con **otra URL y base
-vacía** (hay que reinstalar el módulo y recompilar la app con la nueva URL).
+Notas de Odoo.sh: la rama `prueba` es de **staging**: su URL es fija
+(`https://jhon-61-pruebas-prueba-39772870.dev.odoo.com`) y la base de datos se conserva entre
+compilaciones. Para que Odoo.sh actualice el módulo hay que subir la `version` del `__manifest__.py`.
 
 ## Pendiente
 
 - iOS: compilar con Codemagic cuando exista la cuenta de Apple Developer de la empresa (requiere D-U-N-S).
-- Antes de producción: autenticación en el endpoint (token), límite de peticiones y CORS restringido.
+- Cybersource en lugar del proveedor Demo, WhatsApp, texto legal definitivo del contrato.

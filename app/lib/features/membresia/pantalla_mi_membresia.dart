@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/dependencias.dart';
 import '../../core/formato.dart';
@@ -6,9 +7,12 @@ import '../../core/theme/app_theme.dart';
 import '../../models/afiliacion.dart';
 import '../../models/membresia.dart';
 import '../../services/api_odoo.dart';
+import '../cuenta/pantalla_eliminar_cuenta.dart';
 import '../inicio/pantalla_inicio.dart';
 import '../pagos/abrir_pago.dart';
 import '../servicio/pantalla_solicitar_servicio.dart';
+import 'pantalla_beneficiario.dart';
+import 'pantalla_editar_datos.dart';
 
 /// Pantalla principal del miembro con sesión iniciada.
 class PantallaMiMembresia extends StatefulWidget {
@@ -105,6 +109,28 @@ class _PantallaMiMembresiaState extends State<PantallaMiMembresia> with WidgetsB
     await abrirPaginaDePago(servicio.urlPago!);
   }
 
+  /// Abre una pantalla que, si guarda algo, regresa la membresía actualizada.
+  Future<void> _abrirYActualizar(Widget pantalla) async {
+    final actualizada =
+        await Navigator.of(context).push<Membresia>(MaterialPageRoute(builder: (_) => pantalla));
+    if (actualizada != null && mounted) setState(() => _membresia = actualizada);
+  }
+
+  /// El contrato se abre con un enlace temporal en el navegador del teléfono (que sabe mostrar
+  /// y guardar PDFs).
+  Future<void> _verContrato() async {
+    final mensajero = ScaffoldMessenger.of(context);
+    try {
+      final url = await Dependencias.de(context).cuenta.enlaceContrato();
+      final abierto = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      if (!abierto) {
+        mensajero.showSnackBar(const SnackBar(content: Text('No se pudo abrir el contrato.')));
+      }
+    } on ErrorApi catch (error) {
+      mensajero.showSnackBar(SnackBar(content: Text(error.mensaje)));
+    }
+  }
+
   Future<void> _cerrarSesion() async {
     final confirmar = await showDialog<bool>(
       context: context,
@@ -140,10 +166,25 @@ class _PantallaMiMembresiaState extends State<PantallaMiMembresia> with WidgetsB
         actions: [
           PopupMenuButton<String>(
             onSelected: (opcion) {
-              if (opcion == 'salir') _cerrarSesion();
+              final membresia = _membresia;
+              switch (opcion) {
+                case 'datos' when membresia != null:
+                  _abrirYActualizar(PantallaEditarDatos(membresia: membresia));
+                case 'contrato':
+                  _verContrato();
+                case 'salir':
+                  _cerrarSesion();
+                case 'eliminar':
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const PantallaEliminarCuenta()));
+              }
             },
             itemBuilder: (_) => const [
+              PopupMenuItem(value: 'datos', child: Text('Mis datos')),
+              PopupMenuItem(value: 'contrato', child: Text('Ver mi contrato')),
               PopupMenuItem(value: 'salir', child: Text('Cerrar sesión')),
+              PopupMenuDivider(),
+              PopupMenuItem(value: 'eliminar', child: Text('Eliminar mi cuenta')),
             ],
           ),
         ],
@@ -206,6 +247,13 @@ class _PantallaMiMembresiaState extends State<PantallaMiMembresia> with WidgetsB
                           title: Text(b.nombre),
                           subtitle: Text(_parentesco(b.parentesco)),
                           trailing: _EtiquetaCarencia(carencia: b.carencia),
+                          onTap: () => _abrirYActualizar(PantallaBeneficiario(beneficiario: b)),
+                        ),
+                      if (membresia.beneficiarios.length < 4)
+                        ListTile(
+                          leading: const Icon(Icons.person_add_alt_1_outlined),
+                          title: const Text('Agregar beneficiario'),
+                          onTap: () => _abrirYActualizar(const PantallaBeneficiario()),
                         ),
                     ],
                   ),

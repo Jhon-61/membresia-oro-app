@@ -62,6 +62,52 @@ void main() {
     expect(find.text('Lugar del fallecimiento'), findsOneWidget);
   });
 
+  testWidgets('El menú tiene Mis datos, contrato y eliminar cuenta', (tester) async {
+    await tester.pumpWidget(await appDePrueba(token: 'simulado'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    expect(find.text('Mis datos'), findsOneWidget);
+    expect(find.text('Ver mi contrato'), findsOneWidget);
+    expect(find.text('Eliminar mi cuenta'), findsOneWidget);
+
+    await tester.tap(find.text('Mis datos'));
+    await tester.pumpAndSettle();
+    // El teléfono se muestra sin el +502 que guarda Odoo.
+    expect(find.widgetWithText(TextFormField, '55551234'), findsOneWidget);
+  });
+
+  testWidgets('Eliminar cuenta pide la contraseña', (tester) async {
+    await tester.pumpWidget(await appDePrueba(token: 'simulado'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Eliminar mi cuenta'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Eliminar mi cuenta'));
+    await tester.pump();
+    expect(find.text('Escribe tu contraseña'), findsOneWidget);
+  });
+
+  testWidgets('Agregar beneficiario avisa de los 90 días', (tester) async {
+    await tester.pumpWidget(await appDePrueba(token: 'simulado'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Agregar beneficiario'), 200);
+    await tester.ensureVisible(find.text('Agregar beneficiario'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Agregar beneficiario'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('90 días'), findsOneWidget);
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Agregar'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Agregar'));
+    await tester.pump();
+    expect(find.text('Ingresa el número de DPI'), findsOneWidget);
+  });
+
   testWidgets('Iniciar sesión con contraseña incorrecta muestra el error', (tester) async {
     await tester.pumpWidget(await appDePrueba(cuenta: _CuentaQueRechaza()));
     await tester.pumpAndSettle();

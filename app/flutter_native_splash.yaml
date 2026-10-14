@@ -1,0 +1,13 @@
+# Pantalla de arranque nativa (se muestra mientras Flutter carga).
+# Después de cambiar algo aquí: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#0A1931"          # azul oscuro de la marca
+  image: assets/marca/emblema.png
+  # Android 12+ recorta el icono en un círculo: se usa una versión con margen.
+  android_12:
+    color: "#0A1931"
+    image: assets/marca/splash_android12.png
+  android: true
+  ios: true
+  web: false
+  fullscreen: false

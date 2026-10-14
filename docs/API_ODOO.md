@@ -201,6 +201,24 @@ Cuerpo de la solicitud:
   Q3,480 o mascota de más de 25 kg Q500).
 - Los servicios del miembro también vienen en `membresia.servicios`.
 
+## Cambios desde "Mi membresía"
+
+Todas con `Authorization: Bearer <token>`. Si salen bien responden `{ok: true, membresia: {...}}`
+con la membresía actualizada (mismo formato que `GET membresia`); con datos inválidos, `422` con
+`errores` por campo.
+
+| Ruta | Método | Cuerpo | Qué hace |
+|---|---|---|---|
+| `/api/membresia/v1/membresia/datos` | POST | `{telefono, direccion, nit}` (cualquiera) | Cambia teléfono (8 dígitos), dirección y NIT (`CF` = consumidor final). |
+| `/api/membresia/v1/membresia/beneficiarios` | POST | `{nombre, dpi, parentesco, fecha_nacimiento}` | Agrega un beneficiario (máximo 4). Su carencia de 90 días empieza ese día. Errores como `beneficiario.dpi`. |
+| `/api/membresia/v1/membresia/beneficiarios/<id>` | POST | `{nombre, parentesco, fecha_nacimiento}` | Corrige un beneficiario. **El DPI no se cambia** (otra persona = otro beneficiario). |
+| `/api/membresia/v1/membresia/beneficiarios/<id>` | DELETE | — | Lo quita (en Odoo se archiva para conservar el historial). |
+| `/api/membresia/v1/membresia/contrato` | GET | — | `{ok, url}`: enlace al contrato en PDF, firmado y válido 10 minutos. La app lo abre en el navegador. |
+| `/api/membresia/v1/cuenta/eliminar` | POST | `{password}` | Elimina la cuenta: `401` si la contraseña no es correcta. Cancela la membresía y los cobros, borra fotos del DPI y firma, desactiva el usuario y cierra sus sesiones. Contrato, facturas y pagos se conservan. |
+
+El contrato se genera y guarda en los documentos del miembro cuando la membresía pasa a **Activo**;
+si todavía no existe, el enlace lo genera en ese momento.
+
 ## Seguridad
 
 - Límite por IP: 10 afiliaciones por hora, 20 inicios de sesión cada 15 minutos, 5 recuperaciones
@@ -208,3 +226,4 @@ Cuerpo de la solicitud:
 - Sin CORS: la API la usa solo la app móvil.
 - Afiliación: máximo 20 MB por petición.
 - Las fotos de DPI solo las ve el grupo de documentos sensibles en Odoo.
+- El enlace del contrato lleva una firma HMAC con el id del miembro y la hora en que vence.

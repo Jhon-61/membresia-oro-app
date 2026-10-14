@@ -96,6 +96,74 @@ void main() {
           throwsA(isA<ErrorApi>().having((e) => e.sesionVencida, 'sesionVencida', isTrue)));
       expect(await store.leerToken(), isNull);
     });
+
+    test('cambios desde Mi membresía: rutas, métodos y cuerpo', () async {
+      final store = SesionStoreMemoria();
+      await store.guardarToken('tok-123');
+      final pedidos = <http.Request>[];
+      final cliente = MockClient((peticion) async {
+        pedidos.add(peticion);
+        if (peticion.url.path.endsWith('/contrato')) {
+          return _json({'ok': true, 'url': 'https://odoo.ejemplo.com/membresia/contrato/7/1/abc'}, 200);
+        }
+        if (peticion.url.path.endsWith('/eliminar')) return _json({'ok': true}, 200);
+        return _json({'ok': true, 'membresia': _membresiaJson}, 200);
+      });
+      final servicio = OdooCuentaService('https://odoo.ejemplo.com', store,
+          api: ApiOdoo('https://odoo.ejemplo.com', cliente: cliente, token: store.leerToken));
+
+      await servicio.actualizarDatos(telefono: '44445555', direccion: ' Zona 10 ', nit: '');
+      await servicio.agregarBeneficiario({'nombre': 'Rosa'});
+      await servicio.editarBeneficiario(5, {'nombre': 'Rosa María'});
+      await servicio.quitarBeneficiario(5);
+      expect(await servicio.enlaceContrato(), contains('/membresia/contrato/7/'));
+
+      final rutas = [for (final p in pedidos) '${p.method} ${p.url.path}'];
+      expect(rutas, [
+        'POST /api/membresia/v1/membresia/datos',
+        'POST /api/membresia/v1/membresia/beneficiarios',
+        'POST /api/membresia/v1/membresia/beneficiarios/5',
+        'DELETE /api/membresia/v1/membresia/beneficiarios/5',
+        'GET /api/membresia/v1/membresia/contrato',
+      ]);
+      expect(jsonDecode(pedidos.first.body),
+          {'telefono': '44445555', 'direccion': 'Zona 10', 'nit': 'CF'});
+      expect(pedidos.every((p) => p.headers['Authorization'] == 'Bearer tok-123'), isTrue);
+
+      await servicio.eliminarCuenta('Prueba2026');
+      expect(jsonDecode(pedidos.last.body), {'password': 'Prueba2026'});
+      expect(await store.leerToken(), isNull, reason: 'Al eliminar la cuenta se borra la sesión');
+    });
+
+    test('errores por campo de Odoo llegan a la pantalla', () async {
+      final store = SesionStoreMemoria();
+      await store.guardarToken('tok-123');
+      final cliente = MockClient((_) async => _json({
+            'ok': false,
+            'mensaje': 'Revisa los datos marcados.',
+            'errores': {'beneficiario.dpi': 'El DPI debe tener 13 dígitos.'},
+          }, 422));
+      final servicio = OdooCuentaService('https://odoo.ejemplo.com', store,
+          api: ApiOdoo('https://odoo.ejemplo.com', cliente: cliente, token: store.leerToken));
+
+      await expectLater(
+          servicio.agregarBeneficiario({}),
+          throwsA(isA<ErrorApi>()
+              .having((e) => e.errores['beneficiario.dpi'], 'error del DPI', contains('13'))));
+      expect(await store.leerToken(), 'tok-123', reason: 'Un 422 no cierra la sesión');
+    });
+
+    test('contraseña incorrecta al eliminar: no borra la sesión', () async {
+      final store = SesionStoreMemoria();
+      await store.guardarToken('tok-123');
+      final cliente = MockClient(
+          (_) async => _json({'ok': false, 'mensaje': 'La contraseña no es correcta.'}, 401));
+      final servicio = OdooCuentaService('https://odoo.ejemplo.com', store,
+          api: ApiOdoo('https://odoo.ejemplo.com', cliente: cliente, token: store.leerToken));
+
+      await expectLater(servicio.eliminarCuenta('mala'), throwsA(isA<ErrorApi>()));
+      expect(await store.leerToken(), 'tok-123');
+    });
   });
 
   test('formato de montos', () {

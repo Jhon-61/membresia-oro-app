@@ -20,6 +20,27 @@ abstract interface class CuentaService {
 
   /// Datos actuales de la membresía. Si la sesión venció, la borra y lanza [ErrorApi] (401).
   Future<Membresia> obtenerMembresia();
+
+  /// Cambia teléfono, dirección y NIT. Devuelve la membresía actualizada.
+  Future<Membresia> actualizarDatos({
+    required String telefono,
+    required String direccion,
+    required String nit,
+  });
+
+  /// Agrega un beneficiario ({nombre, dpi, parentesco, fecha_nacimiento}).
+  Future<Membresia> agregarBeneficiario(Map<String, dynamic> datos);
+
+  /// Corrige nombre, parentesco o fecha de nacimiento (el DPI no se cambia).
+  Future<Membresia> editarBeneficiario(int id, Map<String, dynamic> datos);
+
+  Future<Membresia> quitarBeneficiario(int id);
+
+  /// Enlace temporal (vence en 10 minutos) para abrir el contrato en PDF.
+  Future<String> enlaceContrato();
+
+  /// Elimina la cuenta (pide la contraseña otra vez) y borra la sesión del teléfono.
+  Future<void> eliminarCuenta(String password);
 }
 
 class OdooCuentaService implements CuentaService {
@@ -31,6 +52,7 @@ class OdooCuentaService implements CuentaService {
 
   static const rutaSesion = '/api/membresia/v1/sesion';
   static const rutaMembresia = '/api/membresia/v1/membresia';
+  static const rutaBeneficiarios = '$rutaMembresia/beneficiarios';
 
   @override
   Future<bool> haySesion() async => (await _store.leerToken())?.isNotEmpty ?? false;
@@ -74,6 +96,52 @@ class OdooCuentaService implements CuentaService {
       rethrow;
     }
   }
+
+  /// Envía un cambio y devuelve la membresía actualizada que responde Odoo.
+  Future<Membresia> _cambio(Future<Map<String, dynamic>> peticion) async {
+    try {
+      final json = await peticion;
+      return Membresia.desdeJson(json['membresia'] as Map<String, dynamic>);
+    } on ErrorApi catch (error) {
+      if (error.sesionVencida) await _store.borrar();
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Membresia> actualizarDatos({
+    required String telefono,
+    required String direccion,
+    required String nit,
+  }) =>
+      _cambio(_api.post('$rutaMembresia/datos', {
+        'telefono': telefono,
+        'direccion': direccion.trim(),
+        'nit': nit.trim().isEmpty ? 'CF' : nit.trim(),
+      }));
+
+  @override
+  Future<Membresia> agregarBeneficiario(Map<String, dynamic> datos) =>
+      _cambio(_api.post(rutaBeneficiarios, datos));
+
+  @override
+  Future<Membresia> editarBeneficiario(int id, Map<String, dynamic> datos) =>
+      _cambio(_api.post('$rutaBeneficiarios/$id', datos));
+
+  @override
+  Future<Membresia> quitarBeneficiario(int id) => _cambio(_api.delete('$rutaBeneficiarios/$id'));
+
+  @override
+  Future<String> enlaceContrato() async {
+    final json = await _api.get('$rutaMembresia/contrato');
+    return '${json['url']}';
+  }
+
+  @override
+  Future<void> eliminarCuenta(String password) async {
+    await _api.post('/api/membresia/v1/cuenta/eliminar', {'password': password});
+    await _store.borrar();
+  }
 }
 
 /// Sin Odoo (sin ODOO_URL): datos de ejemplo para probar las pantallas.
@@ -107,6 +175,31 @@ class CuentaServiceSimulado implements CuentaService {
     await Future<void>.delayed(const Duration(milliseconds: 400));
     return membresiaDeEjemplo;
   }
+
+  @override
+  Future<Membresia> actualizarDatos({
+    required String telefono,
+    required String direccion,
+    required String nit,
+  }) async =>
+      membresiaDeEjemplo;
+
+  @override
+  Future<Membresia> agregarBeneficiario(Map<String, dynamic> datos) async => membresiaDeEjemplo;
+
+  @override
+  Future<Membresia> editarBeneficiario(int id, Map<String, dynamic> datos) async =>
+      membresiaDeEjemplo;
+
+  @override
+  Future<Membresia> quitarBeneficiario(int id) async => membresiaDeEjemplo;
+
+  @override
+  Future<String> enlaceContrato() async =>
+      throw const ErrorApi('El contrato solo está disponible conectado a Odoo.');
+
+  @override
+  Future<void> eliminarCuenta(String password) => _store.borrar();
 
   static final membresiaDeEjemplo = Membresia.desdeJson(const {
     'referencia': 'MO-000000',

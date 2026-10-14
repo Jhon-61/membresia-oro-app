@@ -15,38 +15,40 @@ negocio)** — ver `DECISIONES.md` D-13. Repositorios: app `Jhon-61/membresia-or
 - Odoo `payment_cybersource`: proveedor de pago completo (pendiente de que el sandbox de
   Cybersource deje de responder 502). **Mientras tanto se usa el proveedor Demo de Odoo.**
 
-## Fase B · Seguridad, inicio de sesión y "Mi membresía"
+## Fase B · Seguridad, inicio de sesión y "Mi membresía" ✅
 
-- [ ] Odoo: cuenta de portal por miembro (correo + contraseña), sesiones con token, "olvidé mi
+- [x] Odoo: cuenta de portal por miembro (correo + contraseña), sesiones con token, "olvidé mi
       contraseña", límite de intentos por IP, sin CORS, tamaño máximo de las peticiones.
-- [ ] App: contraseña en la afiliación, pantalla de inicio de sesión, sesión guardada de forma segura,
+- [x] App: contraseña en la afiliación, pantalla de inicio de sesión, sesión guardada de forma segura,
       cerrar sesión.
-- [ ] App: pantalla **Mi membresía** (estado, carencias, cuotas y pago de pendientes, beneficiarios,
+- [x] App: pantalla **Mi membresía** (estado, carencias, cuotas y pago de pendientes, beneficiarios,
       mascota).
-- [ ] App: al volver del pago, la app se actualiza sola y avisa si quedó aprobado.
+- [x] App: al volver del pago, la app se actualiza sola y avisa si quedó aprobado.
 
-## Fase C · Cobranza mensual y candados
+## Fase C · Cobranza mensual y candados ✅
 
-- [ ] Acción programada diaria: cuota del mes el día de cobro, cobro automático con la tarjeta
+- [x] Acción programada diaria: cuota del mes el día de cobro, cobro automático con la tarjeta
       guardada, reintentos los días 3, 7 y 15, mora al día 30, cancelación al día 60.
-- [ ] Reactivar membresía (reinicia la carencia).
-- [ ] Candados: carencia humano 90 días / mascota 30 días (y por beneficiario agregado después),
+- [x] Reactivar membresía (reinicia la carencia).
+- [x] Candados: carencia humano 90 días / mascota 30 días (y por beneficiario agregado después),
       1 servicio cada 365 días, bloqueo en mora o cancelado.
 
-## Fase D · Servicio Oro
+## Fase D · Servicio Oro ✅
 
-- [ ] Odoo: solicitudes de servicio con flujo del administrador (aprobar, rechazar con motivo, en
+- [x] Odoo: solicitudes de servicio con flujo del administrador (aprobar, rechazar con motivo, en
       proceso, finalizar con fecha y costo) y factura de Q3,480 por el 2.º servicio.
-- [ ] App: botón "Solicitar Servicio Oro", formulario e historial.
+- [x] App: botón "Solicitar Servicio Oro", formulario e historial.
 
-## Fase E · Contrato, datos, cuenta, tablero y FEL
+## Fase E · Contrato, datos, cuenta, tablero y FEL ✅
 
-- [ ] Contrato en PDF con la firma, descargable desde la app.
-- [ ] App: editar teléfono, dirección, NIT y beneficiarios.
-- [ ] App: eliminar cuenta (requisito de las tiendas).
-- [ ] App: pantalla de carga con el logo.
-- [ ] Odoo: tablero (activos, ingreso del mes, % mora, servicios, utilidad estimada).
-- [ ] Odoo: diario configurable para las cuotas (el que emite FEL en la empresa).
+- [x] Contrato en PDF con la firma, descargable desde la app.
+- [x] App: editar teléfono, dirección, NIT y beneficiarios.
+- [x] App: eliminar cuenta (requisito de las tiendas).
+- [x] App: pantalla de carga con el logo.
+- [x] Odoo: tablero (activos, ingreso del mes, % mora, servicios, utilidad estimada).
+- [x] Odoo: diario configurable para las cuotas (el que emite FEL en la empresa).
+- [x] Odoo: Membresía Oro → Ajustes (día de cobro, mora, cancelación, candados, costos,
+      responsable de servicios).
 
 ## Pendiente (fuera de estas fases)
 
