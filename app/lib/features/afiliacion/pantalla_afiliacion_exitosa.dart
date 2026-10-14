@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/constantes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/afiliacion_service.dart';
 
@@ -8,9 +10,24 @@ class PantallaAfiliacionExitosa extends StatelessWidget {
 
   final AfiliacionExitosa resultado;
 
+  /// Abre la página de pago de Odoo en el navegador del teléfono. Ahí el cliente paga
+  /// (la tarjeta nunca pasa por la app) y Odoo activa la membresía al confirmarse el pago.
+  Future<void> _abrirPago(BuildContext context) async {
+    final abierto = await launchUrl(
+      Uri.parse(resultado.urlPago!),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!abierto && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo abrir la página de pago.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final textos = Theme.of(context).textTheme;
+    final tienePago = resultado.urlPago != null;
 
     return Scaffold(
       body: SafeArea(
@@ -47,16 +64,31 @@ class PantallaAfiliacionExitosa extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 16),
-              const Text(
-                'Te enviaremos tu contrato por WhatsApp. '
-                'El pago de la membresía se habilitará en una próxima versión.',
+              Text(
+                tienePago
+                    ? 'Para activar tu membresía, paga la primera cuota. '
+                        'Se abrirá la página de pago segura.'
+                    : 'Te contactaremos para completar el pago de tu membresía.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              FilledButton(
-                onPressed: () => Navigator.of(context).popUntil((ruta) => ruta.isFirst),
-                child: const Text('Volver al inicio'),
-              ),
+              if (tienePago) ...[
+                FilledButton.icon(
+                  onPressed: () => _abrirPago(context),
+                  icon: const Icon(Icons.lock_outline),
+                  label: const Text('Pagar $cuotaMensualTexto'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).popUntil((ruta) => ruta.isFirst),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                  child: const Text('Pagar después'),
+                ),
+              ] else
+                FilledButton(
+                  onPressed: () => Navigator.of(context).popUntil((ruta) => ruta.isFirst),
+                  child: const Text('Volver al inicio'),
+                ),
             ],
           ),
         ),

@@ -42,6 +42,12 @@ class OdooAfiliacionService implements AfiliacionService {
     }
   }
 
+  /// Solo se aceptan enlaces https (nunca se abre otra cosa en el navegador del cliente).
+  static String? _urlSegura(Object? valor) {
+    final uri = Uri.tryParse(valor?.toString() ?? '');
+    return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty ? uri.toString() : null;
+  }
+
   /// Convierte la respuesta HTTP de Odoo en un resultado. Es pública para poder probarla.
   static ResultadoAfiliacion interpretarRespuesta(int codigo, String cuerpo) {
     Map<String, dynamic>? json;
@@ -59,6 +65,7 @@ class OdooAfiliacionService implements AfiliacionService {
         miembroId: json['miembro_id'] is int ? json['miembro_id'] as int : null,
         clienteExistente: json['cliente_existente'] == true,
         aviso: json['aviso']?.toString(),
+        urlPago: _urlSegura(json['url_pago']),
       );
     }
 

@@ -27,6 +27,7 @@ class AfiliacionExitosa extends ResultadoAfiliacion {
     this.miembroId,
     this.clienteExistente = false,
     this.aviso,
+    this.urlPago,
   });
 
   /// Número de afiliación para mostrar al cliente (p. ej. "MO-000123").
@@ -38,6 +39,10 @@ class AfiliacionExitosa extends ResultadoAfiliacion {
 
   /// Mensaje de Odoo para mostrar al usuario (p. ej. "Ya estabas registrado como cliente…").
   final String? aviso;
+
+  /// Enlace para pagar la primera cuota (página de la factura en Odoo). null si Odoo no pudo
+  /// crear la factura.
+  final String? urlPago;
 }
 
 class AfiliacionFallida extends ResultadoAfiliacion {

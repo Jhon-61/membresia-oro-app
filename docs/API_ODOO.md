@@ -80,8 +80,15 @@ Se puede asignar directo a un `fields.Image` / `fields.Binary` de Odoo.
 
 **201 · cliente nuevo**
 ```json
-{ "ok": true, "miembro_id": 123, "referencia": "MO-000123", "cliente_existente": false }
+{
+  "ok": true, "miembro_id": 123, "referencia": "MO-000123", "cliente_existente": false,
+  "url_pago": "https://<odoo>/my/invoices/45?access_token=..."
+}
 ```
+`url_pago`: página de la factura de la primera cuota en el portal de Odoo, donde se paga en línea
+(proveedor Demo en pruebas, Cybersource después). Puede ser `null` si Odoo no pudo crear la factura
+(la afiliación se guarda igual). La app solo abre enlaces `https`. Al quedar pagada la factura, el
+miembro pasa de `pendiente` a `activo`.
 
 **200 · la persona ya era cliente en Odoo** (se le agregó la membresía)
 ```json

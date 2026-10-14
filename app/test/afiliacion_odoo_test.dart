@@ -110,6 +110,19 @@ void main() {
       expect(resultado.aviso, contains('Ya estabas registrado'));
     });
 
+    test('lee el enlace de pago y solo acepta https', () {
+      AfiliacionExitosa interpretar(Object? url) => OdooAfiliacionService.interpretarRespuesta(
+            201,
+            jsonEncode({'ok': true, 'referencia': 'MO-000001', 'url_pago': url}),
+          ) as AfiliacionExitosa;
+
+      expect(interpretar('https://odoo.ejemplo.com/my/invoices/5?access_token=abc').urlPago,
+          'https://odoo.ejemplo.com/my/invoices/5?access_token=abc');
+      expect(interpretar('http://odoo.ejemplo.com/my/invoices/5').urlPago, isNull);
+      expect(interpretar('javascript:alert(1)').urlPago, isNull);
+      expect(interpretar(null).urlPago, isNull);
+    });
+
     test('convierte los errores por campo de Odoo', () {
       final resultado = OdooAfiliacionService.interpretarRespuesta(
         422,

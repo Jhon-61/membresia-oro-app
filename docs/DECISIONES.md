@@ -98,6 +98,14 @@ tarjeta de Cybersource.
 agrega la membresía sin cambiar sus datos (solo se completan los vacíos), la app muestra un aviso y en
 Odoo queda "Por revisar". Si varios coinciden, se crea uno nuevo para revisar. Más seguridad después.
 
+### D-15 · Cybersource como proveedor de pago nativo de Odoo (14 oct 2026)
+**Decisión:** módulo `payment_cybersource` integrado al sistema de pagos de Odoo (proveedores,
+transacciones, tokens, enlaces de pago), con Unified Checkout para capturar la tarjeta y TMS para
+guardarla. Autenticación REST con **Shared Secret** (HTTP Signature). Credenciales solo en la
+configuración del proveedor en Odoo (administradores), nunca en Git ni en el chat.
+**Por qué:** los pagos quedan registrados y conciliados contra la factura automáticamente (contabilidad
+y FEL en Odoo); se reutilizan tokens y enlaces de pago nativos. Se prueba primero sin la app.
+
 ### D-09 · Montos en centavos y fechas en hora de Guatemala (13 oct 2026)
 **Decisión:** montos como enteros en centavos; cálculos de fechas en `America/Guatemala`.
 **Por qué:** los `double` generan errores de redondeo con dinero; en UTC el "día 1" empezaría el día 30

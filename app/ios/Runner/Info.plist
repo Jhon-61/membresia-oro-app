@@ -6,6 +6,8 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Membresía Oro</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Usamos la cámara para tomar la foto de tu DPI y de tu mascota al afiliarte.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
